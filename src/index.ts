@@ -1,26 +1,21 @@
+import type { Context } from 'koa';
 import Koa from 'koa';
-import json from 'koa-json';
+import KoaJson from 'koa-json';
+import KoaQs from 'koa-qs';
 import _ from 'koa-route';
 
-import { checkConnection, client } from './client';
+import { checkConnection } from './client';
+import {
+  getCount,
+  getIndex,
+  getPing,
+  getSearch,
+} from './request-handler';
+import type { RequestHandler } from './types';
 import logger from './util/logger';
 
-const respond = (body: unknown) => async (ctx: Koa.Context) => {
-  ctx.body = await body;
-};
-
-const getAggregateCount = async () => {
-  const { body: indicesInformation } = await client.cat.indices<Record<string, string>[]>({ format: 'json' });
-  const nonSystemIndices = indicesInformation.filter(({ index }) => !index.startsWith('.'));
-  const aggregateCount = nonSystemIndices.reduce(
-    (acc, { index, 'docs.count': count }) => {
-      acc[index] = parseInt(count, 10);
-      return acc;
-    },
-    {} as Record<string, number>,
-  );
-
-  return aggregateCount;
+const respond = (cb: RequestHandler) => async (ctx: Context) => {
+  ctx.body = await cb(ctx);
 };
 
 (async () => {
@@ -29,12 +24,14 @@ const getAggregateCount = async () => {
 
     const app = new Koa();
 
-    app.use(json({ pretty: false, param: 'pretty' }));
+    // TODO: fix the problem that `?pretty=false` will still respond with a prettified result
+    app.use(KoaJson({ pretty: false, param: 'pretty' }));
+    KoaQs(app, 'first');
 
-    app.use(_.get('/', respond('Hello, Coursum Server!')));
-    app.use(_.get('/ping', respond({ message: 'pong' })));
-    app.use(_.get('/count', respond(getAggregateCount())));
-    app.use(_.get('/search', respond('Under implementation')));
+    app.use(_.get('/', respond(getIndex)));
+    app.use(_.get('/ping', respond(getPing)));
+    app.use(_.get('/count', respond(getCount)));
+    app.use(_.get('/search', respond(getSearch)));
 
     app.listen(3000);
   } catch (error) {
