@@ -14,6 +14,13 @@ module.exports = {
   plugins: [
     '@typescript-eslint',
   ],
+  settings: {
+    'import/resolver': {
+      node: {
+        extensions: ['.ts'],
+      },
+    },
+  },
   rules: {
     /* Console & Debugger */
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
@@ -38,6 +45,10 @@ module.exports = {
     '@typescript-eslint/member-delimiter-style': 'error',
 
     /* Import */
+    'import/extensions': [
+      'error',
+      { ts: 'ignorePackages' },
+    ],
     'import/order': ['error',
       {
         alphabetize: { order: 'asc' },

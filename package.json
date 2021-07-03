@@ -8,15 +8,22 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only .",
-    "build": "tsc",
-    "lint": "eslint --ext=ts src",
+    "build": "rm -rf ./dist && tsc",
+    "lint": "eslint --ext=ts src scripts",
     "lint:fix": "yarn lint --fix",
     "prepare": "husky install"
   },
   "lint-staged": {
     "src/**/*.ts": "yarn lint:fix"
   },
+  "dependencies": {
+    "@elastic/elasticsearch": "7.x",
+    "chalk": "^4.1.1",
+    "coursum-types": "https://github.com/coursum/coursum-types",
+    "dotenv": "^10.0.0"
+  },
   "devDependencies": {
+    "@types/node": "^15.12.5",
     "@typescript-eslint/eslint-plugin": "^4.28.1",
     "@typescript-eslint/parser": "^4.28.1",
     "eslint": "^5.16.0 || ^6.8.0 || ^7.2.0",
