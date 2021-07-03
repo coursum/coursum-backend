@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: ./build/server.Dockerfile
+      args:
+        - NODE_VERSION
+    environment:
+      - TZ
+      - NODE_ENV=production
+    volumes:
+      - .env:/workdir/.env
+    ports:
+      - "3000:3000"
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+    restart: always

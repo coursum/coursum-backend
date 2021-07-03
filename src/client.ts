@@ -27,7 +27,7 @@ const getDefaultIndex = () => {
 const defaultIndex = getDefaultIndex();
 
 const client = new Client({
-  node: 'http://localhost:9200',
+  node: process.env.NODE_ENV === 'production' ? 'http://elasticsearch:9200' : 'http://localhost:9200',
   auth: { username, password },
 });
 
