@@ -22,10 +22,7 @@ const getAggregateCount = async () => {
 };
 
 const countDocument = async (index: string) => {
-  const { body: [{ count: indexCount }] } = await client.cat.count<JSONResponse[]>({
-    index,
-    format: 'json',
-  });
+  const { body: [{ count: indexCount }] } = await client.cat.count<JSONResponse[]>({ index, format: 'json' });
 
   const parsedCount = parseInt(indexCount, 10);
 
@@ -52,33 +49,15 @@ const buildSearchResponse = <T>(body: Record<string, any>) => {
   return response;
 };
 
-const getAllCourse = async () => {
+const searchCourse = async (query: any) => {
+  const index = defaultIndex;
+  const body = query;
   const count = await countDocument(defaultIndex);
   const defaultSizeLimit = 1000;
   const size = Math.min(count, defaultSizeLimit);
 
-  const query = {
-    match_all: {},
-  };
-
-  const { body } = await client.search({
-    index: defaultIndex,
-    size,
-    body: { query },
-  });
-
-  const response = buildSearchResponse<Course>(body);
-
-  return response;
-};
-
-const searchCourse = async (query: any) => {
-  const { body } = await client.search({
-    index: defaultIndex,
-    body: { query },
-  });
-
-  const response = buildSearchResponse<Course>(body);
+  const { body: searchResult } = await client.search({ index, body, size });
+  const response = buildSearchResponse<Course>(searchResult);
 
   return response;
 };
@@ -87,14 +66,15 @@ const getIndex = () => 'Hello, Coursum Server!';
 const getPing = () => ({ message: 'ping' });
 const getCount = getAggregateCount;
 const getSearch = async (ctx: Context) => {
-  const query = buildQuery(ctx.query as ParsedUrlQueryInFirstMode);
+  const query = (
+    ('all' in ctx.query)
+      ? { match_all: {} }
+      : buildQuery(ctx.query as ParsedUrlQueryInFirstMode)
+  );
 
-  // TODO: find a way to check ctx.query before actually building the query
-  if (query.bool.must.length === 0) {
-    return getAllCourse();
-  }
+  logger.debug(JSON.stringify(query, null, 2));
 
-  return searchCourse(query);
+  return searchCourse({ query });
 };
 
 export {

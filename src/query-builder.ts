@@ -1,98 +1,78 @@
 import type { ParsedUrlQueryInFirstMode } from './types';
 
+interface addQueryOrFieldsOption <T extends {}>{
+  query?: T;
+  addToFields?: boolean;
+}
+
 const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
   const fields = [
     'title*',
     'summary*',
-    'curriculumCode',
   ];
 
-  const conditions = [];
+  const filter: any[] = [];
 
-  if (params.giga) {
-    conditions.push({
-      term: {
-        'tag.giga': true,
-      },
-    });
-  }
+  const addMultiMatchQueryOrFields = <T>(
+    param: string | undefined,
+    searchFields: string[],
+    { query, addToFields = true }: addQueryOrFieldsOption<T> = {},
+  ) => {
+    if (param) {
+      filter.push({
+        multi_match: {
+          query: query ?? param,
+          fields: searchFields,
+        },
+      });
+    } else if (addToFields) {
+      fields.push(...searchFields);
+    }
+  };
 
-  if (params.language) {
-    conditions.push({
-      term: {
-        'language.en.keyword': params.language,
-      },
-    });
-  } else {
-    fields.push('language*');
-  }
+  const addTermQueryOrField = <T>(
+    param: string | undefined,
+    searchField: string,
+    { query, addToFields = true }: addQueryOrFieldsOption<T> = {},
+  ) => {
+    if (param) {
+      filter.push({
+        term: {
+          [searchField]: query ?? param,
+        },
+      });
+    } else if (addToFields) {
+      fields.push(searchField);
+    }
+  };
 
-  if (params.classroom) {
-    conditions.push({
-      term: {
-        'classroom.keyword': params.classroom,
-      },
-    });
-  }
+  addMultiMatchQueryOrFields(params.teacher, ['lecturers.name*']);
+  addMultiMatchQueryOrFields(params.semester, ['schedule.semester*']);
+  addMultiMatchQueryOrFields(params.times, ['schedule.times*']);
+  addTermQueryOrField(params.classroom, 'classroom.keyword');
+  addTermQueryOrField(params.credit, 'credit', { addToFields: false });
+  addMultiMatchQueryOrFields(params.language, ['language.ja.keyword', 'language.en.keyword']);
+  addTermQueryOrField(params.id, 'yearClassId.keyword');
+  // TODO: handle query contains giga & remove { addToFields: false }
+  addTermQueryOrField(params.code, 'tag.curriculumCode.keyword');
+  addMultiMatchQueryOrFields(params.category, ['tag.category*']);
+  addTermQueryOrField(params.giga, 'tag.giga', { query: true, addToFields: false });
 
-  if (params.category) {
-    conditions.push({
-      multi_match: {
-        query: params.category,
-        fields: ['category*'],
-      },
-    });
-  } else {
-    fields.push('category*');
-  }
-
-  if (params.semester) {
-    conditions.push({
-      multi_match: {
-        query: params.semester,
-        fields: ['schedule.semester*'],
-      },
-    });
-  } else {
-    fields.push('schedule.semester*');
-  }
-
-  if (params.teacher) {
-    conditions.push({
-      multi_match: {
-        query: params.teacher,
-        fields: ['lecturers.name*'],
-      },
-    });
-  } else {
-    fields.push('lecturers.name*');
-  }
-
-  if (params.times) {
-    conditions.push({
-      multi_match: {
-        query: params.times,
-        fields: ['schedule.times*'],
-      },
-    });
-  } else {
-    fields.push('schedule.times*');
-  }
-
-  if (params.query) {
-    conditions.push({
+  const mustQuery = params.query ? {
+    must: {
       multi_match: {
         query: params.query,
         type: 'cross_fields',
         fields,
         operator: 'and',
       },
-    });
-  }
+    },
+  } : {};
 
   const query = {
     bool: {
-      must: conditions,
+      ...mustQuery,
+      filter,
     },
   };
 
