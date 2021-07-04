@@ -5,6 +5,7 @@ import _ from 'koa-route';
 import { client, defaultIndex } from './client';
 import buildQuery from './query-builder';
 import type { JSONResponse, ParsedUrlQueryInFirstMode, SearchResponse } from './types';
+import RequestError from './util/errors/RequestError';
 import logger from './util/logger';
 
 const getAggregateCount = async () => {
@@ -55,6 +56,14 @@ const searchCourse = async (query: any) => {
   const count = await countDocument(defaultIndex);
   const defaultSizeLimit = 1000;
   const size = Math.min(count, defaultSizeLimit);
+
+  const { body: validation } = await client.indices.validateQuery({ index, body, explain: true });
+
+  if (!validation.valid) {
+    logger.debug(validation);
+
+    throw new RequestError('Query Validation Error', JSON.stringify(validation, null, 2), 400);
+  }
 
   const { body: searchResult } = await client.search({ index, body, size });
   const response = buildSearchResponse<Course>(searchResult);

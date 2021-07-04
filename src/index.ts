@@ -13,10 +13,19 @@ import {
   getSearch,
 } from './request-handler';
 import type { RequestHandler } from './types';
+import RequestError from './util/errors/RequestError';
 import logger from './util/logger';
 
 const respond = (cb: RequestHandler) => async (ctx: Context) => {
-  ctx.body = await cb(ctx);
+  try {
+    ctx.body = await cb(ctx);
+  } catch (error) {
+    if (error instanceof RequestError) {
+      ctx.throw(error.toString(), error.statusCode);
+    } else {
+      ctx.throw(error.toString());
+    }
+  }
 };
 
 (async () => {
