@@ -80,12 +80,14 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
     filterQuery = { filter: filters };
   }
 
-  const query = {
-    bool: {
-      ...mustQuery,
-      ...filterQuery,
-    },
-  };
+  const boolQuery = { ...mustQuery, ...filterQuery };
+
+  // TODO: find a better type for query
+  let query: {} = { match_none: {} };
+
+  if (Object.keys(boolQuery).length > 0) {
+    query = { bool: boolQuery };
+  }
 
   return query;
 };
