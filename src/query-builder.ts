@@ -11,7 +11,7 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
     'summary*',
   ];
 
-  const filter: any[] = [];
+  const filters: any[] = [];
 
   const addMultiMatchQueryOrFields = <T>(
     param: string | undefined,
@@ -19,7 +19,7 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
     { query, addToFields = true }: addQueryOrFieldsOption<T> = {},
   ) => {
     if (param) {
-      filter.push({
+      filters.push({
         multi_match: {
           query: query ?? param,
           fields: searchFields,
@@ -36,7 +36,7 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
     { query, addToFields = true }: addQueryOrFieldsOption<T> = {},
   ) => {
     if (param) {
-      filter.push({
+      filters.push({
         term: {
           [searchField]: query ?? param,
         },
@@ -58,21 +58,32 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
   addMultiMatchQueryOrFields(params.category, ['tag.category*']);
   addTermQueryOrField(params.giga, 'tag.giga', { query: true, addToFields: false });
 
-  const mustQuery = params.query ? {
-    must: {
-      multi_match: {
-        query: params.query,
-        type: 'cross_fields',
-        fields,
-        operator: 'and',
+  let mustQuery = {};
+
+  if (params.query) {
+    mustQuery = {
+      must: {
+        multi_match: {
+          query: params.query,
+          type: 'cross_fields',
+          fields,
+          operator: 'and',
+        },
       },
-    },
-  } : {};
+    };
+  }
+
+  let filterQuery = {};
+  if (filters.length === 1) {
+    filterQuery = { filter: filters[0] };
+  } else if (filters.length > 1) {
+    filterQuery = { filter: filters };
+  }
 
   const query = {
     bool: {
       ...mustQuery,
-      filter,
+      ...filterQuery,
     },
   };
 
