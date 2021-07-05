@@ -3,7 +3,7 @@ import Koa from 'koa';
 import KoaJson from 'koa-json';
 import KoaLogger from 'koa-logger';
 import KoaQs from 'koa-qs';
-import _ from 'koa-route';
+import KoaRoute from 'koa-route';
 
 import { checkConnection } from './client';
 import {
@@ -38,10 +38,10 @@ const respond = (cb: RequestHandler) => async (ctx: Context) => {
     app.use(KoaJson({ pretty: false, param: 'pretty' }));
     KoaQs(app, 'first');
 
-    app.use(_.get('/', respond(getIndex)));
-    app.use(_.get('/ping', respond(getPing)));
-    app.use(_.get('/count', respond(getCount)));
-    app.use(_.get('/search', respond(getSearch)));
+    app.use(KoaRoute.get('/', respond(getIndex)));
+    app.use(KoaRoute.get('/ping', respond(getPing)));
+    app.use(KoaRoute.get('/count', respond(getCount)));
+    app.use(KoaRoute.get('/search', respond(getSearch)));
 
     app.listen(3000);
   } catch (error) {

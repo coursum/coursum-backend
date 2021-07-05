@@ -1,6 +1,5 @@
 import type { Course } from 'coursum-types';
 import type { Context } from 'koa';
-import _ from 'koa-route';
 
 import { client, defaultIndex } from './client';
 import buildQuery from './query-builder';
