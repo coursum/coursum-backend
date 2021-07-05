@@ -35,7 +35,6 @@ const respond = (cb: RequestHandler) => async (ctx: Context) => {
     const app = new Koa();
 
     app.use(KoaLogger());
-    // TODO: fix the problem that `?pretty=false` will still respond with a prettified result
     app.use(KoaJson({ pretty: false, param: 'pretty' }));
     KoaQs(app, 'first');
 
