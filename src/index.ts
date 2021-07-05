@@ -1,3 +1,4 @@
+import KoaCors from '@koa/cors';
 import type { Context } from 'koa';
 import Koa from 'koa';
 import KoaJson from 'koa-json';
@@ -33,6 +34,7 @@ const respond = (cb: (ctx: Context) => any) => async (ctx: Context) => {
 
     const app = new Koa();
 
+    app.use(KoaCors());
     app.use(KoaLogger());
     app.use(KoaJson({ pretty: false, param: 'pretty' }));
     KoaQs(app, 'first');
