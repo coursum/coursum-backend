@@ -1,11 +1,13 @@
-import type { Course } from 'coursum-types';
+import type { Course, SearchResponse } from 'coursum-types';
 import type { Context } from 'koa';
 
 import { client, defaultIndex } from './client';
 import buildQuery from './query-builder';
-import type { JSONResponse, ParsedUrlQueryInFirstMode, SearchResponse } from './types';
+import type { ParsedUrlQueryInFirstMode } from './types';
 import RequestError from './util/errors/RequestError';
 import logger from './util/logger';
+
+type JSONResponse = Record<string, string>
 
 const getAggregateCount = async () => {
   const { body: indicesInformation } = await client.cat.indices<JSONResponse[]>({ format: 'json' });

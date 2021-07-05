@@ -12,11 +12,10 @@ import {
   getPing,
   getSearch,
 } from './request-handler';
-import type { RequestHandler } from './types';
 import RequestError from './util/errors/RequestError';
 import logger from './util/logger';
 
-const respond = (cb: RequestHandler) => async (ctx: Context) => {
+const respond = (cb: (ctx: Context) => any) => async (ctx: Context) => {
   try {
     ctx.body = await cb(ctx);
   } catch (error) {
