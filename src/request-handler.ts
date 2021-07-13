@@ -3,7 +3,7 @@ import type { Context } from 'koa';
 
 import { client, defaultIndex } from './client';
 import buildQuery from './query-builder';
-import type { ParsedUrlQueryInFirstMode } from './types';
+import type { ESSearchResponse, ParsedUrlQueryInFirstMode } from './types';
 import RequestError from './util/errors/RequestError';
 import logger from './util/logger';
 
@@ -38,14 +38,21 @@ const countDocument = async (index: string) => {
   return parsedCount;
 };
 
-const buildSearchResponse = <T>(body: Record<string, any>) => {
+const buildSearchResponse = <T>(body: ESSearchResponse<T>) => {
   const response: SearchResponse<T> = {
     stat: {
       total: body.hits.hits.length,
       latency: body.took,
     },
+    /* eslint-disable no-underscore-dangle */
     // Hide response detail
-    hits: body.hits.hits.map(({ _source }: { _source: T }) => _source),
+    hits: body.hits.hits.map((hit) => ({
+      id: hit._id,
+      score: hit._score,
+      data: hit._source,
+      highlight: hit.highlight,
+    })),
+    /* eslint-enable no-underscore-dangle */
   };
 
   return response;
@@ -53,12 +60,15 @@ const buildSearchResponse = <T>(body: Record<string, any>) => {
 
 const searchCourse = async (query: any) => {
   const index = defaultIndex;
-  const body = query;
   const count = await countDocument(defaultIndex);
   const defaultSizeLimit = 1000;
   const size = Math.min(count, defaultSizeLimit);
 
-  const { body: validation } = await client.indices.validateQuery({ index, body, explain: true });
+  const { body: validation } = await client.indices.validateQuery({
+    index,
+    body: { query },
+    explain: true,
+  });
 
   if (!validation.valid) {
     logger.debug(validation);
@@ -66,7 +76,18 @@ const searchCourse = async (query: any) => {
     throw new RequestError('Query Validation Error', JSON.stringify(validation, null, 2), 400);
   }
 
-  const { body: searchResult } = await client.search({ index, body, size });
+  const { body: searchResult } = await client.search<ESSearchResponse<Course>>({
+    index,
+    body: {
+      query,
+      highlight: {
+        order: 'score',
+        fields: { '*': {} },
+      },
+    },
+    size,
+  });
+
   const response = buildSearchResponse<Course>(searchResult);
 
   return response;
@@ -84,7 +105,7 @@ const getSearch = async (ctx: Context) => {
 
   logger.debug(JSON.stringify(query, null, 2));
 
-  return searchCourse({ query });
+  return searchCourse(query);
 };
 
 export {
