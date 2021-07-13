@@ -48,20 +48,7 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
 
   addMultiMatchQueryOrFields(params.teacher, ['lecturers.name*']);
   addMultiMatchQueryOrFields(params.semester, ['schedule.semester*']);
-
-  if (params.times) {
-    filters.push({
-      bool: {
-        should: [
-          { term: { 'schedule.times.ja.keyword': params.times } },
-          { term: { 'schedule.times.en.keyword': params.times } },
-        ],
-      },
-    });
-  } else {
-    fields.push('schedule.times*');
-  }
-
+  addMultiMatchQueryOrFields(params.times, ['schedule.times*']);
   addTermQueryOrField(params.classroom, 'classroom.keyword');
   addTermQueryOrField(params.credit, 'credit', { addToFields: false });
   addMultiMatchQueryOrFields(params.language, ['language.ja.keyword', 'language.en.keyword']);
