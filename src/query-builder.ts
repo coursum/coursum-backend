@@ -14,14 +14,14 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
   const filters: any[] = [];
 
   const addMultiMatchQueryOrFields = <T>(
-    param: string | undefined,
+    param: string,
     searchFields: string[],
     { query, addToFields = true }: addQueryOrFieldsOption<T> = {},
   ) => {
-    if (param) {
+    if (param in params) {
       filters.push({
         multi_match: {
-          query: query ?? param,
+          query: query ?? params[param],
           fields: searchFields,
         },
       });
@@ -31,14 +31,14 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
   };
 
   const addTermQueryOrField = <T>(
-    param: string | undefined,
+    param: string,
     searchField: string,
     { query, addToFields = true }: addQueryOrFieldsOption<T> = {},
   ) => {
-    if (param) {
+    if (param in params) {
       filters.push({
         term: {
-          [searchField]: query ?? param,
+          [searchField]: query ?? params[param],
         },
       });
     } else if (addToFields) {
@@ -46,17 +46,17 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
     }
   };
 
-  addMultiMatchQueryOrFields(params.teacher, ['lecturers.name*']);
-  addMultiMatchQueryOrFields(params.semester, ['schedule.semester*']);
-  addMultiMatchQueryOrFields(params.times, ['schedule.times*']);
-  addTermQueryOrField(params.classroom, 'classroom.keyword');
-  addTermQueryOrField(params.credit, 'credit', { addToFields: false });
-  addMultiMatchQueryOrFields(params.language, ['language.ja.keyword', 'language.en.keyword']);
-  addTermQueryOrField(params.id, 'yearClassId.keyword');
+  addMultiMatchQueryOrFields('teacher', ['lecturers.name*']);
+  addMultiMatchQueryOrFields('semester', ['schedule.semester*']);
+  addMultiMatchQueryOrFields('times', ['schedule.times*']);
+  addTermQueryOrField('classroom', 'classroom.keyword');
+  addTermQueryOrField('credit', 'credit', { addToFields: false });
+  addMultiMatchQueryOrFields('language', ['language.ja.keyword', 'language.en.keyword']);
+  addTermQueryOrField('id', 'yearClassId.keyword');
   // TODO: handle query contains giga & remove { addToFields: false }
-  addTermQueryOrField(params.code, 'tag.curriculumCode.keyword');
-  addMultiMatchQueryOrFields(params.category, ['tag.category*']);
-  addTermQueryOrField(params.giga, 'tag.giga', { query: true, addToFields: false });
+  addTermQueryOrField('code', 'tag.curriculumCode.keyword');
+  addMultiMatchQueryOrFields('category', ['tag.category*']);
+  addTermQueryOrField('giga', 'tag.giga', { query: true, addToFields: false });
 
   let mustQuery = {};
 
