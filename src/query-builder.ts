@@ -59,14 +59,19 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
   } else {
     fields.push(...['schedule.times.ja', 'schedule.times.en']);
   }
-  addTermQueryOrField('classroom', 'classroom.keyword');
+  addMultiMatchQueryOrFields('classroom', ['location.*.keyword']);
+  addMultiMatchQueryOrFields('classFormat', ['tag.classFormat.*.keyword']);
+  addMultiMatchQueryOrFields('types', ['tag.types.*.keyword']);
+  addMultiMatchQueryOrFields('department', ['department.*.keyword']);
   addTermQueryOrField('credit', 'credit', { addToFields: false });
-  addMultiMatchQueryOrFields('language', ['language.ja.keyword', 'language.en.keyword']);
-  addTermQueryOrField('id', 'yearClassId.keyword');
+  addMultiMatchQueryOrFields('language', ['tag.language.*.keyword']);
+  addTermQueryOrField('id', 'id.keyword');
   // TODO: handle query contains giga & remove { addToFields: false }
   addTermQueryOrField('code', 'tag.curriculumCode.keyword');
   addMultiMatchQueryOrFields('category', ['tag.category*']);
   addTermQueryOrField('giga', 'tag.giga', { query: true, addToFields: false });
+  addTermQueryOrField('needScreening', 'screening.needScreening',
+    { query: true, addToFields: false });
 
   let mustQuery = {};
 

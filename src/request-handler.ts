@@ -1,4 +1,4 @@
-import type { Course, SearchResponse } from 'coursum-types';
+import type { CourseV2, SearchResponse } from 'coursum-types';
 import type { Context } from 'koa';
 
 import { client, defaultIndex } from './client';
@@ -76,7 +76,7 @@ const searchCourse = async (query: any) => {
     throw new RequestError('Query Validation Error', JSON.stringify(validation, null, 2), 400);
   }
 
-  const { body: searchResult } = await client.search<ESSearchResponse<Course>>({
+  const { body: searchResult } = await client.search<ESSearchResponse<CourseV2>>({
     index,
     body: {
       query,
@@ -88,7 +88,7 @@ const searchCourse = async (query: any) => {
     size,
   });
 
-  const response = buildSearchResponse<Course>(searchResult);
+  const response = buildSearchResponse<CourseV2>(searchResult);
 
   return response;
 };
