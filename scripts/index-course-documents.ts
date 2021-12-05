@@ -1,7 +1,7 @@
 import { readFile, readdir } from 'fs/promises';
 import path from 'path';
 
-import type { Course } from 'coursum-types';
+import type { CourseV2 } from 'coursum-types';
 
 import { checkConnection, client, defaultIndex } from '../src/client';
 import logger from '../src/util/logger';
@@ -14,7 +14,7 @@ async function* coursesReader(filenames: string[]) {
     try {
       // eslint-disable-next-line no-await-in-loop
       const file = await readFile(path.resolve(filepath, filename), { encoding: 'utf-8' });
-      const course: Course = JSON.parse(file);
+      const course: CourseV2 = JSON.parse(file);
       yield course;
     } catch (error) {
       logger.error(error);
@@ -35,7 +35,7 @@ const bulkCreateCourses = async () => {
       return {
         create: {
           _index: defaultIndex,
-          _id: course.yearClassId,
+          _id: course.id,
         },
       };
     },
