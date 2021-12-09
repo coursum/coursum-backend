@@ -23,7 +23,7 @@ const respond = (cb: (ctx: Context) => any) => async (ctx: Context) => {
     if (error instanceof RequestError) {
       ctx.throw(error.toString(), error.statusCode);
     } else {
-      ctx.throw(error.toString());
+      ctx.throw(String(error));
     }
   }
 };
