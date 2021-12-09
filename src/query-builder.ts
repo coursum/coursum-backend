@@ -46,6 +46,8 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
     }
   };
 
+  addTermQueryOrField('id', 'id.keyword');
+  addMultiMatchQueryOrFields('department', ['department.*.keyword']);
   addMultiMatchQueryOrFields('teacher', ['lecturers.name*']);
   addMultiMatchQueryOrFields('semester', ['schedule.semester*']);
   if ('times' in params) {
@@ -59,19 +61,18 @@ const buildQuery = (params: ParsedUrlQueryInFirstMode) => {
   } else {
     fields.push(...['schedule.times.ja', 'schedule.times.en']);
   }
-  addMultiMatchQueryOrFields('classroom', ['location.*.keyword']);
+  addMultiMatchQueryOrFields('campus', ['location.*.keyword']);
+  addTermQueryOrField('credit', 'credit', { addToFields: false });
+  // TODO: Has English Support?
+  addTermQueryOrField('needScreening', 'screening.needScreening', { query: true, addToFields: false });
+  // TODO: tag.aspect
+  addMultiMatchQueryOrFields('category', ['tag.category*']);
   addMultiMatchQueryOrFields('classFormat', ['tag.classFormat.*.keyword']);
   addMultiMatchQueryOrFields('types', ['tag.types.*.keyword']);
-  addMultiMatchQueryOrFields('department', ['department.*.keyword']);
-  addTermQueryOrField('credit', 'credit', { addToFields: false });
   addMultiMatchQueryOrFields('language', ['tag.language.*.keyword']);
-  addTermQueryOrField('id', 'id.keyword');
-  // TODO: handle query contains giga & remove { addToFields: false }
   addTermQueryOrField('code', 'tag.curriculumCode.keyword');
-  addMultiMatchQueryOrFields('category', ['tag.category*']);
+  // TODO: handle query contains giga & remove { addToFields: false }
   addTermQueryOrField('giga', 'tag.giga', { query: true, addToFields: false });
-  addTermQueryOrField('needScreening', 'screening.needScreening',
-    { query: true, addToFields: false });
 
   let mustQuery = {};
 
